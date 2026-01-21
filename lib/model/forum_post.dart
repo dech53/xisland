@@ -61,3 +61,4 @@ class ForumPost {
     reaminReplies = json['RemainReplies'];
   }
 }
+

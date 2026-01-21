@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xisland/http/dio_instance.dart';
 import 'package:xisland/http/static/api.dart';
 import 'package:xisland/model/mainforums.dart';
-import 'package:xisland/utils/parse_sections.dart';
 
 final getMainForums = FutureProvider.autoDispose<List<MainForum>?>((ref) async {
   var res = await ref

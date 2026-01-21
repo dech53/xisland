@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:xisland/app.dart';
 import 'package:xisland/provider/http/forums.dart';
+import 'package:xisland/router/router.dart';
 import 'package:xisland/utils/logger.dart';
 import 'package:xisland/utils/storage.dart';
 
@@ -21,16 +22,15 @@ void main() async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(
-        builder: FlutterSmartDialog.init(),
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.cyan,
-            brightness: Brightness.light,
+      child: AppLifecycleWatcher(
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          routerConfig: rootRouter,
+          builder: FlutterSmartDialog.init(),
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyan),
           ),
         ),
-        debugShowCheckedModeBanner: false,
-        home: const MyApp(),
       ),
     ),
   );

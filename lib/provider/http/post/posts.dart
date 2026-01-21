@@ -1,21 +1,24 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xisland/http/dio_instance.dart';
 import 'package:xisland/http/static/api.dart';
+import 'package:xisland/model/cookie.dart';
 import 'package:xisland/model/forum_post.dart';
-
-final postsProvider =
-    AsyncNotifierProvider<ForumPostNotifier, List<ForumPost>?>(
-      ForumPostNotifier.new,
-    );
+import 'package:xisland/provider/local/cookie.dart';
 
 class ForumInfo {
   final int id;
   final bool isTimeline;
   ForumInfo({required this.id, required this.isTimeline});
 }
+
+final postsProvider =
+    AsyncNotifierProvider<ForumPostNotifier, List<ForumPost>?>(
+      ForumPostNotifier.new,
+    );
 
 final forumInfoProvider = NotifierProvider<ForumInfoNotifier, ForumInfo>(
   ForumInfoNotifier.new,
@@ -32,12 +35,17 @@ class ForumInfoNotifier extends Notifier<ForumInfo> {
 
 class ForumPostNotifier extends AsyncNotifier<List<ForumPost>?> {
   int _page = 1;
+  late Cookie _mainCookie;
 
   @override
   FutureOr<List<ForumPost>?> build() async {
     _page = 1;
     final forumInfo = ref.read(forumInfoProvider);
-
+    final cookies = await ref.read(cookiesProvider.future);
+    _mainCookie = cookies.firstWhere(
+      (c) => c.isMain,
+      orElse: () => Cookie(cookie: '', name: '', isMain: false),
+    );
     final res = await ref
         .read(networkServiceProvider)
         .get(
@@ -45,10 +53,7 @@ class ForumPostNotifier extends AsyncNotifier<List<ForumPost>?> {
               "${Api.baseUrl}${forumInfo.isTimeline ? Api.timeLinePostsUrl : Api.forumPostsUrl}",
           param: {'id': forumInfo.id, 'page': _page++},
           options: Options(
-            headers: {
-              'Cookie':
-                  'userhash=%90q%EC%18%8EMu%C1%C5%8Dpo%209%93%F4E%10%28%18%3E%E5b6',
-            },
+            headers: {'Cookie': 'userhash=${_mainCookie.cookie}'},
           ),
         );
     final posts = ForumPostList.fromJson(res.data).posts;
@@ -78,13 +83,23 @@ class ForumPostNotifier extends AsyncNotifier<List<ForumPost>?> {
                 "${Api.baseUrl}${forumInfo.isTimeline ? Api.timeLinePostsUrl : Api.forumPostsUrl}",
             param: {'id': forumInfo.id, 'page': _page++},
             options: Options(
-              headers: {
-                'Cookie':
-                    'userhash=%90q%EC%18%8EMu%C1%C5%8Dpo%209%93%F4E%10%28%18%3E%E5b6',
-              },
+              headers: {'Cookie': 'userhash=${_mainCookie.cookie}'},
             ),
           );
-      return ForumPostList.fromJson(res.data).posts;
+      final data = res.data;
+      if (data is Map<String, dynamic>) {
+        if (data['success'] == false) {
+          throw ApiException(data['error'] ?? '未知错误');
+        } else {
+          throw ApiException('接口返回异常');
+        }
+      }
+
+      if (data is List) {
+        return ForumPostList.fromJson(data).posts ?? [];
+      }
+
+      throw ApiException('无法识别的返回数据');
     });
   }
 
@@ -97,10 +112,7 @@ class ForumPostNotifier extends AsyncNotifier<List<ForumPost>?> {
               "${Api.baseUrl}${forumInfo.isTimeline ? Api.timeLinePostsUrl : Api.forumPostsUrl}",
           param: {'id': forumInfo.id, 'page': _page++},
           options: Options(
-            headers: {
-              'Cookie':
-                  'userhash=%90q%EC%18%8EMu%C1%C5%8Dpo%209%93%F4E%10%28%18%3E%E5b6',
-            },
+            headers: {'Cookie': 'userhash=${_mainCookie.cookie}'},
           ),
         );
     final newPosts = ForumPostList.fromJson(res.data).posts;
@@ -109,5 +121,10 @@ class ForumPostNotifier extends AsyncNotifier<List<ForumPost>?> {
     }
     final oldPosts = state.value ?? [];
     state = AsyncData([...oldPosts, ...newPosts]);
+  }
+
+  void updateMainCookie(Cookie mainCookie) {
+    _mainCookie = mainCookie;
+    debugPrint('修改后的maincookie是${_mainCookie.name}');
   }
 }

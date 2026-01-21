@@ -23,6 +23,7 @@ class NetworkService {
   }) async {
     debugPrint("path:$path");
     final Options opt = options ?? Options();
+    // debugPrint("optins:${options!.headers!['Cookie']}");
     if (extra != null && extra['ua'] != null) {
       opt.headers = {'user-agent': headerUa(type: extra['ua'])};
     }
@@ -80,4 +81,12 @@ String headerUa({type = 'mob'}) {
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Safari/605.1.15';
   }
   return headerUa;
+}
+
+class ApiException implements Exception {
+  final String message;
+  ApiException(this.message);
+
+  @override
+  String toString() => message;
 }

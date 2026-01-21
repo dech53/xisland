@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:status_bar_control/status_bar_control.dart';
 import 'package:xisland/common/widgets/network_img_layer.dart';
 import 'package:xisland/utils/method_channel.dart';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:xisland/common/widgets/badge.dart';
 import 'package:xisland/common/widgets/circle_icon.dart';
@@ -7,24 +8,11 @@ import 'package:xisland/common/widgets/html_content.dart';
 import 'package:xisland/common/widgets/network_img_layer.dart';
 import 'package:xisland/http/static/api.dart';
 import 'package:xisland/model/forum_post.dart';
-import 'package:xisland/plugins/gallery/gallery_viewer.dart';
-import 'package:xisland/plugins/gallery/hero_route.dart';
 import 'package:xisland/provider/ui_data/image_wh.dart';
 import 'package:xisland/utils/storage.dart';
 
-void onPreviewImg(picList, initIndex, context) {
-  Navigator.of(context).push(
-    HeroRoute<void>(
-      builder: (BuildContext context) => Material(
-        color: Colors.transparent,
-        child: GalleryViewer(
-          sources: picList,
-          initIndex: initIndex,
-          onPageChanged: (int pageIndex) {},
-        ),
-      ),
-    ),
-  );
+void onPreviewImg(List<String> picList, int initIndex, BuildContext context) {
+  context.push('/gallery?index=$initIndex', extra: picList);
 }
 
 class PostCard extends StatelessWidget {
@@ -42,6 +30,7 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      onTap: () => context.push('/thread_detail/${post.id}'),
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -89,8 +78,9 @@ class PostCard extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 4),
-              //富文本内容
-              SelectionArea(child: HtmlContent(htmlContent: post.content)),
+              //富文本内容 
+              //TODO 后续修改成spanwidget，htmlcontent会导致手势检测问题
+              HtmlContent(htmlContent: post.content),
               //https://image.nmb.best/image/2025-01-15/678787a6e4cb4.jpg
               //图片内容
               if (post.img != '')

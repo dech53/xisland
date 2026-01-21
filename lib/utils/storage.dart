@@ -1,5 +1,7 @@
+import 'package:flutter/rendering.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:xisland/model/cookie.dart';
 import 'package:xisland/model/mainforums.dart';
 import 'package:xisland/model/settings.dart';
 import 'package:xisland/utils/parse_sections.dart';
@@ -22,12 +24,13 @@ class SPStorage {
       },
     );
     forumSections = parseSections(mainForums: mainForums);
-    // 设置
+
     settings = await Hive.openBox<Settings>('setting');
   }
 
   static void regAdapter() {
     Hive.registerAdapter(SettingsAdapter());
+    Hive.registerAdapter(CookieAdapter());
   }
 
   static Future<void> close() async {
@@ -35,4 +38,6 @@ class SPStorage {
     localCache.close();
     settings.close();
   }
+
+  
 }

@@ -1,19 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:xisland/pages/root/view.dart';
-import 'package:xisland/utils/storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:xisland/provider/local/cookie.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class AppLifecycleWatcher extends ConsumerStatefulWidget {
+  final Widget child;
+  const AppLifecycleWatcher({required this.child, super.key});
+
   @override
-  Widget build(BuildContext context) {
-    double statusBarHeight = MediaQuery.of(context).padding.top;
-    Box localCache = SPStorage.localCache;
-    double sheetHeight = MediaQuery.sizeOf(context).height -
-        MediaQuery.of(context).padding.top -
-        MediaQuery.sizeOf(context).width * 9 / 16;
-    localCache.put('sheetHeight', sheetHeight);
-    SPStorage.statusBarHeight = statusBarHeight;
-    return const RootPage();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _AppLifecycleWatcherState();
+}
+
+class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
   }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      await ref.read(cookiesProvider.notifier).saveToBox();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

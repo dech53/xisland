@@ -1,84 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lazy_load_indexed_stack/lazy_load_indexed_stack.dart';
-import 'package:xisland/model/mainforums.dart';
-import 'package:xisland/pages/fav/view.dart';
-import 'package:xisland/pages/home/view.dart';
-import 'package:xisland/pages/settings/view.dart';
-import 'package:xisland/provider/http/posts.dart';
+import 'package:go_router/go_router.dart';
+import 'package:xisland/model/cookie.dart';
+import 'package:xisland/provider/http/post/posts.dart';
+import 'package:xisland/provider/ui/scroll_controller.dart';
 import 'package:xisland/provider/ui/settings.dart';
 import 'package:xisland/utils/storage.dart';
 
 class RootPage extends ConsumerStatefulWidget {
-  const RootPage({super.key});
+  const RootPage({super.key, required this.child});
+
+  final Widget child;
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _RootPageState();
+  ConsumerState<RootPage> createState() => _RootPageState();
 }
 
-class _RootPageState extends ConsumerState<RootPage>
-    with AutomaticKeepAliveClientMixin {
-  int _index = 0;
-  @override
-  void dispose() async {
-    await SPStorage.close();
-    super.dispose();
-  }
+class _RootPageState extends ConsumerState<RootPage> {
+  static const tabs = ['/home', '/fav', '/settings'];
 
-  List rootApp = [
-    {
-      "selectedIcon": Icons.home,
-      "unSelectedIcon": Icons.home_outlined,
-      "text": "首页",
-    },
-    {
-      "selectedIcon": Icons.star,
-      "unSelectedIcon": Icons.star_border,
-      "text": "收藏",
-    },
-    {
-      "selectedIcon": Icons.settings,
-      "unSelectedIcon": Icons.settings_outlined,
-      "text": "设置",
-    },
-  ];
+  int _indexFromLocation(BuildContext context) {
+    final location = GoRouterState.of(context).uri.toString();
+    return tabs.indexWhere((e) => location.startsWith(e));
+  }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final settings = ref.watch(settingsProvider);
-    final forumInfo = ref.watch(forumInfoProvider);
+    final index = _indexFromLocation(context);
     return Scaffold(
-      extendBody: false,
-      appBar: AppBar(
-        backgroundColor: Theme.of(
-          context,
-        ).colorScheme.primary.withValues(alpha: 0.40),
-        titleSpacing: 0, 
-        title: Row(
-          children: [
-            Text(
-              forumInfo.isTimeline
-                  ? SPStorage.timeLines
-                            .firstWhere(
-                              (e) => e.id == forumInfo.id,
-                              orElse: () => TimeLine(name: '未知'),
-                            )
-                            .name ??
-                        '未知'
-                  : SPStorage.forumSections
-                        .firstWhere(
-                          (e) => e.id == forumInfo.id,
-                          orElse: () => ForumSection(id: 0, name: '未知'),
-                        )
-                        .name,
-              style: TextStyle(
-                fontSize: 18
-              ),
-            ),
-          ],
-        ),
-      ),
       drawer: Drawer(
         child: SafeArea(
           child: ListView(
@@ -92,7 +42,7 @@ class _RootPageState extends ConsumerState<RootPage>
               ),
               ExpansionTile(
                 leading: const Icon(Icons.timeline),
-                title: Text("时间线"),
+                title: const Text("时间线"),
                 children: SPStorage.timeLines.map((timeline) {
                   return ListTile(
                     title: Text(timeline.displayName ?? timeline.name ?? ''),
@@ -112,9 +62,7 @@ class _RootPageState extends ConsumerState<RootPage>
                   title: Text(mainForums.name ?? ''),
                   children: forums.map((forum) {
                     return ListTile(
-                      title: Text(
-                         forum.name ?? '',
-                      ),
+                      title: Text(forum.name ?? ''),
                       onTap: () {
                         ref
                             .read(postsProvider.notifier)
@@ -160,30 +108,34 @@ class _RootPageState extends ConsumerState<RootPage>
                 ),
               ),
             ),
-          LazyLoadIndexedStack(
-            index: _index,
-            children: [HomePage(), FavPage(), SettingsPage()],
-          ),
+          widget.child,
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (value) => setState(() {
-          _index = value;
-        }),
-        selectedIndex: _index,
-        destinations: <Widget>[
-          ...rootApp.map((e) {
-            return NavigationDestination(
-              icon: Icon(e['unSelectedIcon']),
-              label: e['text'],
-              selectedIcon: Icon(e['selectedIcon']),
-            );
-          }),
+        selectedIndex: index < 0 ? 0 : index,
+        onDestinationSelected: (i) {
+          if (i == 0)
+            ref.read(homeScrollControllerProvider.notifier).scrollToTop();
+          context.go(tabs[i]);
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: '首页',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.star_border),
+            selectedIcon: Icon(Icons.star),
+            label: '收藏',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: '设置',
+          ),
         ],
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
