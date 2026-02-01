@@ -74,7 +74,9 @@ final rootRouter = GoRouter(
       builder: (context, state) {
         final idStr = state.pathParameters['id']!;
         final id = int.parse(idStr);
-        return ThreadDetailPage(id: id);
+        final extra = state.extra as Map<String, dynamic>;
+        final fid = extra['fid'] as int;
+        return ThreadDetailPage(id: id, fid: fid);
       },
     ),
   ],

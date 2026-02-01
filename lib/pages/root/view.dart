@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:xisland/model/cookie.dart';
 import 'package:xisland/provider/http/post/posts.dart';
 import 'package:xisland/provider/ui/scroll_controller.dart';
 import 'package:xisland/provider/ui/settings.dart';

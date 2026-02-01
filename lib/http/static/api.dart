@@ -7,4 +7,5 @@ class Api {
   static const String imgBestUrl = "https://image.nmb.best/image/";
   static const String timeLinesUrl = "/getTimelineList";
   static const String thread_detial = "/thread";
+  static const String ref = "/ref";
 }

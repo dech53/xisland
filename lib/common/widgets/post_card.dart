@@ -17,6 +17,7 @@ void onPreviewImg(List<String> picList, int initIndex, BuildContext context) {
 
 class PostCard extends StatelessWidget {
   final ForumPost post;
+  final bool isDetail;
   final bool showSectionBanner;
   final void Function(int, bool)? changeSection;
 
@@ -25,15 +26,27 @@ class PostCard extends StatelessWidget {
     required this.post,
     required this.showSectionBanner,
     this.changeSection,
+    this.isDetail = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.push('/thread_detail/${post.id}'),
+      onTap: () {
+        if (!isDetail) {
+          // context.push('/thread_detail/67752785', extra: {'fid': post.fid});
+          context.push('/thread_detail/${post.id}', extra: {'fid': post.fid});
+        } else {}
+      },
       child: Card(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -78,9 +91,13 @@ class PostCard extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 4),
-              //富文本内容 
+              //富文本内容
               //TODO 后续修改成spanwidget，htmlcontent会导致手势检测问题
-              HtmlContent(htmlContent: post.content),
+              HtmlContent(
+                htmlContent: post.content,
+                id: post.id!,
+                mainId: post.id!,
+              ),
               //https://image.nmb.best/image/2025-01-15/678787a6e4cb4.jpg
               //图片内容
               if (post.img != '')

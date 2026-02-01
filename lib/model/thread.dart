@@ -30,6 +30,7 @@ class Reply {
   int? sage;
   int? admin;
   int? hide;
+  bool? isOuter;
 
   Reply({
     required this.id,
@@ -45,8 +46,25 @@ class Reply {
     this.sage,
     this.admin,
     this.hide,
+    this.isOuter = false,
   });
-
+  factory Reply.empty() {
+    return Reply(
+      id: 0,
+      fid: null,
+      replyCount: null,
+      userHash: '',
+      name: '',
+      title: '',
+      content: '',
+      now: '',
+      img: '',
+      ext: '',
+      sage: null,
+      admin: null,
+      hide: null,
+    );
+  }
   Reply.fromJson(Map<String, dynamic> json)
     : id = json['id'] as int,
       fid = json['fid'] as int?,
@@ -60,5 +78,6 @@ class Reply {
       ext = json['ext'] as String? ?? '',
       sage = json['sage'] as int?,
       admin = json['admin'] as int?,
-      hide = json['Hide'] as int?;
+      hide = json['Hide'] as int?,
+      isOuter = false;
 }
